@@ -1,0 +1,28 @@
+images:
+  - name: cloud-controller-manager
+    sourceRepository: github.com/ironcore-dev/cloud-provider-ironcore
+    repository: ghcr.io/ironcore-dev/cloud-provider-ironcore
+    tag: "v0.4.0"
+    labels:
+      - name: "gardener.cloud/cve-categorisation"
+        value:
+          network_exposure: "protected"
+          authentication_enforced: false
+          user_interaction: "gardener-operator"
+          confidentiality_requirement: "high"
+          integrity_requirement: "high"
+          availability_requirement: "low"
+
+  - name: machine-controller-manager-provider-ironcore
+    sourceRepository: github.com/ironcore-dev/machine-controller-manager-provider-ironcore
+    repository: ghcr.io/ironcore-dev/machine-controller-manager-provider-ironcore
+    tag: "v0.5.0"
+    labels:
+      - name: "gardener.cloud/cve-categorisation"
+        value:
+          network_exposure: "protected"
+          authentication_enforced: false
+          user_interaction: "gardener-operator"
+          confidentiality_requirement: "high"
+          integrity_requirement: "high"
+          availability_requirement: "low"
