@@ -23,5 +23,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: open-component-model/ocm-setup-action@30210abb7373f34003cd50cdab77e23497afa6a7
       - run: ocm --version # debug
-      - run: ocm add components --create --file ocm/ctf ocm/component-constructor.yaml VERSION=${{ github.event.release.tag_name }}
+      - run: yq '.images[] | ((.name | sub("-"; "_") | upcase) + "_VERSION=" + .tag)' imagevector/images.yaml >> $GITHUB_ENV
+      - run: ocm add components --create --file ocm/ctf ocm/component-constructor.yaml VERSION=${{ github.event.release.tag_name }}  --addenv
       - run: ocm transfer ctf ocm/ctf ghcr.io/gonzolino/ocm
