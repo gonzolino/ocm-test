@@ -1,28 +1,54 @@
-name: OCM Release
+name: Release OCM Component
 
 on:
-  release:
-    types:
-      - published
+  push:
+    branches:
+      - main
+    tags:
+      - "v*.*.*"
 
 jobs:
-  release:
-    name: OCM Release
+  ocm:
     runs-on: ubuntu-latest
-
     permissions:
       contents: read
       packages: write
 
     steps:
       - uses: actions/checkout@v5
+
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: open-component-model/ocm-setup-action@30210abb7373f34003cd50cdab77e23497afa6a7
-      - run: ocm --version # debug
-      - run: yq '.images[] | ((.name | sub("-"; "_") | upcase) + "_VERSION=" + .tag)' imagevector/images.yaml >> $GITHUB_ENV
-      - run: ocm add components --create --file ocm/ctf ocm/component-constructor.yaml VERSION=${{ github.event.release.tag_name }}  --addenv
-      - run: ocm transfer ctf ocm/ctf ghcr.io/gonzolino/ocm
+
+      - name: Retrieve image versions from imagevector
+        run: yq '.images[] | ((.name | sub("-"; "_") | upcase) + "_VERSION=" + .tag)' imagevector/images.yaml >> $GITHUB_ENV
+
+      - name: Determine OCM component version and destination repository
+        id: ocm_info
+        run: |
+          # Use dev version and repo by default
+          OCM_VERSION="v0.0.0+$(echo ${{ github.sha }} | cut -c1-7)"
+          OCM_REPO="ghcr.io/${{ github.repository_owner}}/ocm-dev"
+
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            # Use tag version and production repo
+            OCM_VERSION="${GITHUB_REF_NAME}"
+            OCM_REPO="ghcr.io/${{ github.repository_owner}}/ocm"
+          fi
+          echo "version=$OCM_VERSION" >> $GITHUB_OUTPUT
+          echo "repository=$OCM_REPO" >> $GITHUB_OUTPUT
+
+      - name: Add OCM component version to transport archive
+        run: ocm add components --create --file ocm/ctf ocm/component-constructor.yaml --addenv
+        env:
+          VERSION: ${{ steps.ocm_info.outputs.version }}
+
+      - name: Tranfer OCM component transport archive to GitHub Container Registry
+        run: ocm transfer ctf ocm/ctf ${OCM_REPO}
+        env:
+          OCM_REPO: ${{ steps.ocm_info.outputs.repository }}
