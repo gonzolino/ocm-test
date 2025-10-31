@@ -32,21 +32,29 @@ jobs:
         id: ocm_info
         run: |
           # Use dev version and repo by default
-          OCM_VERSION="v0.0.0+$(echo ${{ github.sha }} | cut -c1-7)"
+          gitsha=$(echo ${{ github.sha }} | cut -c1-7)
+          OCM_VERSION="v0.0.0_${gitsha}"
+          CHART_VERSION="v0.0.0_${gitsha}"
+          IMAGE_VERSION="sha-${gitsha}"
           OCM_REPO="ghcr.io/${{ github.repository_owner}}/ocm-dev"
 
           if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             # Use tag version and production repo
             OCM_VERSION="${GITHUB_REF_NAME}"
+            CHART_VERSION="${GITHUB_REF_NAME}"
+            IMAGE_VERSION="${GITHUB_REF_NAME}"
             OCM_REPO="ghcr.io/${{ github.repository_owner}}/ocm"
           fi
           echo "version=$OCM_VERSION" >> $GITHUB_OUTPUT
+          echo "chart_version=$CHART_VERSION" >> $GITHUB_OUTPUT
+          echo "image_version=$IMAGE_VERSION" >> $GITHUB_OUTPUT
           echo "repository=$OCM_REPO" >> $GITHUB_OUTPUT
 
       - name: Add OCM component version to transport archive
         run: ocm add components --create --file ocm/ctf ocm/component-constructor.yaml --addenv
         env:
           VERSION: ${{ steps.ocm_info.outputs.version }}
+          HELLO_WORLD_VERSION: ${{ steps.ocm_info.outputs.image_version }}
 
       - name: Tranfer OCM component transport archive to GitHub Container Registry
         run: ocm transfer ctf ocm/ctf ${OCM_REPO}
