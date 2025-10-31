@@ -33,7 +33,7 @@ jobs:
         run: |
           # Use dev version and repo by default
           gitsha=$(echo ${{ github.sha }} | cut -c1-7)
-          OCM_VERSION="v0.0.0_${gitsha}"
+          OCM_VERSION="v0.0.0+${gitsha}"
           CHART_VERSION="v0.0.0_${gitsha}"
           IMAGE_VERSION="sha-${gitsha}"
           OCM_REPO="ghcr.io/${{ github.repository_owner}}/ocm-dev"
