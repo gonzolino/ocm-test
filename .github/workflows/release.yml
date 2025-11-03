@@ -1,4 +1,4 @@
-name: Release OCM Component
+name: Release
 
 on:
   push:
@@ -9,6 +9,7 @@ on:
 
 jobs:
   ocm:
+    name: Release OCM component
     runs-on: ubuntu-latest
     permissions:
       contents: read
