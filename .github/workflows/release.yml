@@ -64,7 +64,7 @@ jobs:
         id: chart_version
         run: |
           # Use dev version by default
-          CHART_VERSION="v$(git describe --tags)"
+          CHART_VERSION="v0.0.0+$(echo ${{ github.sha }} | cut -c1-7)"
 
           if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             # Use tag version
@@ -111,7 +111,7 @@ jobs:
           # Use dev version and repo by default
           gitsha=$(echo ${{ github.sha }} | cut -c1-7)
           OCM_VERSION="v0.0.0+${gitsha}"
-          CHART_VERSION="$(git describe --tags)"
+          CHART_VERSION="v0.0.0_${gitsha}"
           IMAGE_VERSION="sha-${gitsha}"
           OCM_REPO="ghcr.io/${{ github.repository_owner}}/ocm-dev"
 
