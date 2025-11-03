@@ -131,7 +131,8 @@ jobs:
         run: ocm add components --create --file ocm/ctf ocm/component-constructor.yaml --addenv
         env:
           VERSION: ${{ steps.ocm_info.outputs.version }}
-          HELLO_WORLD_VERSION: ${{ steps.ocm_info.outputs.image_version }}
+          IMAGE_VERSION: ${{ steps.ocm_info.outputs.image_version }}
+          CHART_VERSION: ${{ steps.ocm_info.outputs.chart_version }}
 
       - name: Tranfer OCM component transport archive to GitHub Container Registry
         run: ocm transfer ctf ocm/ctf ${OCM_REPO}
