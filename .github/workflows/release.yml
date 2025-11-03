@@ -44,11 +44,48 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  helm:
+    name: Release Helm Chart
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.19.0
+
+      - name: Determine chart version
+        id: chart_version
+        run: |
+          # Use dev version by default
+          CHART_VERSION="v0.0.0+$(echo ${{ github.sha }} | cut -c1-7)"
+
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            # Use tag version
+            CHART_VERSION="${GITHUB_REF_NAME}"
+          fi
+          echo "version=$CHART_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Log in to GitHub Container Registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - run: helm package chart --version ${{ steps.chart_version.outputs.version }}
+      - run: helm push hello-world-{{ steps.chart_version.outputs.version }}.tgz ghcr.io/${{ github.repository_owner }}/hello-world
+
   ocm:
     name: Release OCM component
     runs-on: ubuntu-latest
 
-    needs: docker
+    needs:
+      - docker
+      - helm
 
     permissions:
       contents: read
