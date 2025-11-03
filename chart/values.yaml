@@ -1,0 +1,3 @@
+image:
+  repository: ghcr.io/gonzolino/hello-world
+  tag: latest
